@@ -1,41 +1,50 @@
-# aoc-2022
+# Advent of Code 2022
 
-# AOC outline
+*A repository solving code challenges in Eric Wastl's **[2022 Advent of Code](https://adventofcode.com/)**.*
 
-* Elves need 50 stars to feed reindeers by 12/05
-* Each day there will be 2 puzzles, second one being unlocked after finishing first
-* Each puzzle 1 star
-* Everytime start expedition in jungle, there is an input of calories, how much food elves have
-* Number of calories per food denoted per line. Blank line means new elf's inventory starts.
+**Content outline:**
 
-```
-1000
-2000
-3000
+- [AOC 2022 outline](#aoc-2022-outline)
+- [How to run this repository](#how-to-run-this-repository)
 
-4000
+## AOC 2022 outline
 
-5000
-6000
+- Elves need 50 stars to feed reindeers by 12/05
+- Each day there will be 2 puzzles, second one being unlocked after finishing first
+- Each puzzle 1 half-star
 
-7000
-8000
-9000
+## How to run this repository
 
-10000
+A [makefile is attached](https://calmcode.io/makefiles/the-problem.html) for the simple running of the challenges. An example of how to run one of the makefile commands:
+
+```bash
+make day6
 ```
 
-## Question 1.1
+Sometimes some of these challenges have an alternative run for sample inputs, i.e. a kind of test to see if the expected answer is printed. This command is suffixed (perhaps not v accurately) with `-test`.
 
-Above highlights 5 elves, with different inventories. When hungry, needs to know from elf with most food. 4th elf in above case.
+```bash
+make day6-test
+```
 
-## Question 1.2
+That's it! Finally:
 
-Top 3 elves total
+```
+         |
+        -+-
+         A
+        /=\               /\  /\    ___  _ __  _ __ __    __
+      i/ O \i            /  \/  \  / _ \| '__|| '__|\ \  / /
+      /=====\           / /\  /\ \|  __/| |   | |    \ \/ /
+      /  i  \           \ \ \/ / / \___/|_|   |_|     \  /
+    i/ O * O \i                                       / /
+    /=========\        __  __                        /_/    _
+    /  *   *  \        \ \/ /        /\  /\    __ _  ____  | |
+  i/ O   i   O \i       \  /   __   /  \/  \  / _` |/ ___\ |_|
+  /=============\       /  \  |__| / /\  /\ \| (_| |\___ \  _
+  /  O   i   O  \      /_/\_\      \ \ \/ / / \__,_|\____/ |_|
+i/ *   O   O   * \i
+/=================\
+       |___|
 
-## Question 2.1
-
-Rock paper scissors many rounds. Draw or win.
-
-* Provided with an encrypted strat guide
-* Calculate the score given the following input
+```

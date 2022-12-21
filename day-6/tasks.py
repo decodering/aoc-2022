@@ -27,6 +27,7 @@ def detect_marker(
 
 
 def main():
+    timer_name = "timer"
     test_mode = True if len(argv) > 1 else False
 
     parent_dir = Path(__file__).parent.resolve()
@@ -38,20 +39,19 @@ def main():
 
     print(f"Processing a stream of enconded input, {len(stream)} chars long...")
 
-    timer = Timer(return_ns=True, ns_mode=True)
-    timer.start()
-    marker_loc1, curr_window1 = detect_marker(stream_input=stream, marker_len=4)
-    time_1 = timer.stop()
-
-    timer.start()
-    marker_loc2, curr_window2 = detect_marker(stream_input=stream, marker_len=14)
-    time_2 = timer.stop()
+    with Timer(name=timer_name, return_ns=True, ns_mode=True) as timer:
+        marker_loc1, curr_window1 = detect_marker(stream_input=stream, marker_len=4)
+        time_1_microsecs = timer.stop(reset=True) / 1000
+        marker_loc2, curr_window2 = detect_marker(stream_input=stream, marker_len=14)
+        time_2_microsecs = timer.stop(reset=True) / 1000
+        total_time_microsecs = timer.timers[timer_name] * (10**6)
 
     print(
         dedent(
             f"""
-    Task 1: {marker_loc1} Num of characters needed process until start of marker ('{curr_window1}'). {(time_1/1000):.3f}us taken.
-    Task 2: {marker_loc2} Num of characters needed process until start of message ('{curr_window2}'). {(time_2//1000):.3f}us taken.
+    Task 1: {marker_loc1} Num of characters needed process until start of marker ('{curr_window1}'). {(time_1_microsecs):.3f}us taken.
+    Task 2: {marker_loc2} Num of characters needed process until start of message ('{curr_window2}'). {(time_2_microsecs):.3f}us taken.
+    Total time: {total_time_microsecs:.3f}us taken
     """
         )
     )

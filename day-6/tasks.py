@@ -1,5 +1,5 @@
 """
-Should make a more efficient sliding window algo that doesn't do it per char, but per 4 chars
+Sliding window algorithm to detect a specific pattern in a string.
 """
 
 from os.path import join
@@ -31,7 +31,7 @@ def main():
     test_mode = True if len(argv) > 1 else False
 
     parent_dir = Path(__file__).parent.resolve()
-    input_fname = "input.txt" if not test_mode else "sample1.txt"
+    input_fname = "input.txt" if not test_mode else "sample.txt"
 
     lines = read_text_file(join(parent_dir, input_fname))
     stream = lines[0]

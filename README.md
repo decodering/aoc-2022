@@ -29,7 +29,7 @@ make day6-test
 
 That's it! Finally:
 
-```
+```ascii
          |
         -+-
          A
@@ -46,5 +46,4 @@ That's it! Finally:
 i/ *   O   O   * \i
 /=================\
        |___|
-
 ```

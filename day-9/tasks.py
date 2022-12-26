@@ -2,11 +2,13 @@
 Sliding window algorithm to determine 'visibility'
 """
 
+from collections import deque
+from dataclasses import dataclass
 from os.path import join
 from pathlib import Path
 from sys import argv
 from textwrap import dedent
-from typing import Tuple, List
+from typing import Optional, Tuple, List
 
 import numpy as np
 

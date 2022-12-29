@@ -1,105 +1,141 @@
 """
-Sliding window algorithm to determine 'visibility'
+Sliding window algorithm to determine 'visibility'.
+
+Euclidean grid space.
 """
 
 from collections import deque
-from dataclasses import dataclass
 from os.path import join
 from pathlib import Path
 from sys import argv
 from textwrap import dedent
-from typing import Optional, Tuple, List
+from typing import Any, List, Optional, Tuple
 
 import numpy as np
+import numpy.typing as npt
 
 from src.timer import Timer
 from src.utils import read_text_file
 
 
-def string_to_int_list(string: str) -> List[int]:
-    return [int(char) for char in list(string)]
+def is_in_acceptable_position(tail_position: np.array, head_position: np.array) -> bool:
+    """
+    Tail position is centre position. Check if head_position is acceptable.
+    """
+    y, x = tail_position
+    is_acceptable_y = y - 1 <= head_position[0] <= y + 1
+    is_acceptable_x = x - 1 <= head_position[1] <= x + 1
+    return is_acceptable_x and is_acceptable_y
 
 
-def get_elements_visible_in_grid(grid: np.array) -> List[Tuple[int, int]]:
-    num_rows, num_cols = grid.shape
-    visible_points = []
-    visible_points.extend(
-        list(zip([0] * num_cols, list(range(num_cols))))
-    )  # Top row visible
-    visible_points.extend(
-        list(zip([num_rows - 1] * num_cols, list(range(num_cols))))
-    )  # Bot row visible
-    visible_points.extend(
-        list(zip(list(range(1, (num_rows - 1))), [0] * (num_rows - 2)))
-    )  # first col visible
-    visible_points.extend(
-        list(zip(list(range(1, (num_rows - 1))), [num_cols - 1] * (num_rows - 2)))
-    )  # last col visible
+def move_tail_adjacent_to_head(
+    tail_position: np.array, head_position: np.array, checked: bool = False
+) -> Optional[npt.NDArray[Any]]:
+    if not checked and is_in_acceptable_position(
+        tail_position=tail_position, head_position=head_position
+    ):
+        return
+    head_y, head_x = head_position
+    tail_y, tail_x = tail_position
+    y_distance = head_y - tail_y
+    x_distance = head_x - tail_x
 
-    # Process inner points
-    for i in range(1, (num_rows - 1)):
-        for j in range(1, (num_cols - 1)):
-            top_slice = grid[:i, j]
-            bot_slice = grid[(i + 1) :, j]
-            left_slice = grid[i, :j]
-            right_slice = grid[i, (j + 1) :]
-            height = grid[i, j]
+    manhattan_distance = abs(x_distance) + abs(y_distance)
+    is_unidirectional = (x_distance == 0) or (y_distance == 0)
 
-            for visibility_line in [top_slice, bot_slice, left_slice, right_slice]:
-                visibility = [True if el < height else False for el in visibility_line]
-                if all(visibility):
-                    visible_points.append((i, j))
-                    break
+    neg_modifier_y = -1 if (y_distance < 0) else 1
+    neg_modifier_x = -1 if (x_distance < 0) else 1
+    steps_shifted_in_x_axis = neg_modifier_x * (abs(x_distance) - 1)
+    steps_shifted_in_y_axis = neg_modifier_y * (abs(y_distance) - 1)
+    if is_unidirectional:
+        assert manhattan_distance == 2
+        if abs(x_distance):
+            move_matrix = np.array((0, steps_shifted_in_x_axis))
+        else:
+            move_matrix = np.array((steps_shifted_in_y_axis, 0))
+    else:
+        print(y_distance, x_distance)
+        assert (manhattan_distance in [2, 3]) and (abs(x_distance) in [1, 2])
+        if abs(x_distance) > abs(y_distance):
+            move_matrix = np.array((y_distance, steps_shifted_in_x_axis))
+        else:
+            move_matrix = np.array((steps_shifted_in_y_axis, x_distance))
+    tail_position += move_matrix
+    return tail_position
 
-    return visible_points
 
+def get_coords_visited_and_gridspace_shape(
+    raw_instructions: List[str],
+) -> Tuple[List[Tuple[int, int]], Tuple[int, int]]:
+    current_head_pos = np.array((0, 0))
+    current_tail_pos = np.array((0, 0))
+    visited_coords = deque(iterable=[(0, 0)])
+    neg_x, pos_x, neg_y, pos_y = 0, 0, 0, 0
+    for instruct in raw_instructions:
+        direction, steps = [int(i) if i.isdigit() else i for i in instruct.split(" ")]
+        move_col = (
+            steps if (direction == "R") else (-steps if (direction == "L") else 0)
+        )
+        move_row = (
+            steps if (direction == "D") else (-steps if (direction == "U") else 0)
+        )
 
-def get_scenic_scores(grid: np.array) -> np.array:
-    num_rows, num_cols = grid.shape
-    scenic_scores = np.zeros(((num_rows - 2), (num_cols - 2)), int)
+        is_lateral = True if (abs(move_col)) else False
+        local_head_pos = current_head_pos.copy()
+        if is_lateral:
+            neg_modifier = -1 if (move_col < 0) else 1
+            iterator = range(1, (abs(move_col) + 1))
+            step_increment = np.array((0, neg_modifier))
+        else:
+            neg_modifier = -1 if (move_row < 0) else 1
+            iterator = range(1, (abs(move_row) + 1))
+            step_increment = np.array((neg_modifier, 0))
 
-    # Process scores of inner points
-    for i in range(1, (num_rows - 1)):
-        for j in range(1, (num_cols - 1)):
-            height = grid[i, j]
-            top_slice = np.flip(
-                grid[:i, j]
-            )  # Flip so it goes from point to edge direction
-            bot_slice = grid[(i + 1) :, j]
-            left_slice = np.flip(
-                grid[i, :j]
-            )  # Flip so it goes from point to edge direction
-            right_slice = grid[i, (j + 1) :]
+        print(instruct)
+        for _ in iterator:
+            local_head_pos += step_increment
+            if not is_in_acceptable_position(
+                tail_position=current_tail_pos, head_position=local_head_pos
+            ):
+                updated_tail_pos = move_tail_adjacent_to_head(
+                    tail_position=current_tail_pos.copy(),
+                    head_position=local_head_pos.copy(),
+                    checked=True,
+                )
+                current_tail_pos = updated_tail_pos.copy()
+                visited_coords.append(tuple(current_tail_pos))
+            if local_head_pos[1] < 0:
+                neg_x = min(neg_x, local_head_pos[1])
+            else:
+                pos_x = min(pos_x, local_head_pos[1])
+            if local_head_pos[0] < 0:
+                neg_y = min(neg_y, local_head_pos[0])
+            else:
+                pos_y = min(pos_y, local_head_pos[0])
+            print(current_tail_pos, local_head_pos)
 
-            total_score = 1
-            for a_slice in [top_slice, bot_slice, left_slice, right_slice]:
-                score = 0
-                for neighbouring_height in a_slice:
-                    score += 1
-                    if neighbouring_height >= height:
-                        break
-                total_score *= score
-            scenic_scores[i - 1, j - 1] = total_score
-    return scenic_scores
+        move_matrix = np.array([move_row, move_col])
+        print("yoyo", move_matrix, current_head_pos)
+        current_head_pos += move_matrix
+
+    final_gridspace_shape = np.array(((pos_y - neg_y), (pos_x - neg_x)))
+    return visited_coords, final_gridspace_shape
 
 
 def main():
-    timer_name = "day8-timer"
+    timer_name = "day9-timer"
     test_mode = True if len(argv) > 1 else False
     parent_dir = Path(__file__).parent.resolve()
     input_fname = "input.txt" if not test_mode else "sample.txt"
 
-    lines = read_text_file(join(parent_dir, input_fname))
-    gridspace = np.array([string_to_int_list(l) for l in lines], dtype=int)
-
     DEBUG = True
+    lines = read_text_file(join(parent_dir, input_fname))
 
     with Timer(name=timer_name, return_ns=True, ns_mode=True) as timer:
-        visible_coords = get_elements_visible_in_grid(grid=gridspace)
+        visited_coords, gridspace_shape = get_coords_visited_and_gridspace_shape(
+            raw_instructions=lines
+        )
         time_1_millisecs = timer.stop(reset=True) / (10**6)
-
-        scenic_score_array = get_scenic_scores(grid=gridspace)
-        time_2_millisecs = timer.stop(reset=True) / (10**6)
 
         total_time_millisecs = timer.timers[timer_name] * (10**3)
 
@@ -108,11 +144,8 @@ def main():
         dedent(
             f"""
     Task 1 ({time_1_millisecs:.2f}ms elapsed):
-    Num visible: {len(visible_coords)}
-
-    Task 2 ({time_2_millisecs:.2f}ms elapsed):
-    {scenic_score_array}
-    Max score: {np.amax(scenic_score_array)}
+    Number of unique visited coords: {len(set(visited_coords))}
+    Final gridspace shape: {gridspace_shape}
 
     Total time taken: {total_time_millisecs:.2f}ms
     """

@@ -20,4 +20,7 @@ day9:
 	@python -um day-9.tasks;
 
 day9-test:
-	@python -um day-9.tasks test;
+	@python -um day-9.tasks sample;
+
+day9-test2:
+	@python -um day-9.tasks sample2;

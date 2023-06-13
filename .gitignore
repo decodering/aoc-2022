@@ -1,3 +1,21 @@
-**__pycache**
-**.vscode**
-**.DS_Store**
+# Macos
+.DS_Store
+
+# VS code
+.vscode/
+
+# Python - General https://github.com/github/gitignore/blob/main/Python.gitignore
+dist/
+build/
+__pycache__/
+.ipynb_checkpoints
+.ipynb_checkpoints/
+*.egg-info/
+venv/
+.venv
+
+# Local files
+local/
+.local/
+output/
+.output/

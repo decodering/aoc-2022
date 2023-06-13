@@ -1,3 +1,11 @@
+VENV_NAME="venv"
+VENV_PATH="./${VENV_NAME}/bin/activate" # ./ is optional at front
+
+py-setup:
+	@python3 -m venv $(VENV_NAME) && \
+		source $(VENV_PATH) && \
+		pip install --upgrade pip
+
 day6:
 	@python -um day-6.tasks;
 

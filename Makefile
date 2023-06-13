@@ -6,6 +6,10 @@ py-setup:
 		source $(VENV_PATH) && \
 		pip install --upgrade pip
 
+py-install:
+	@source $(VENV_PATH) && \
+		pip install -r requirements.txt
+
 day6:
 	@python -um day-6.tasks;
 
@@ -42,8 +46,11 @@ day10-test:
 day10-test2:
 	@python -um day-10.tasks sample2;
 
-day13-test:
+day13-sample1:
 	@python -um day-13.tasks sample1;
 
+day13-test1:
+	@python -um day-13.tasks test1;
+
 day13:
-	@python -um day-13.tasks input1;
+	@python -um day-13.tasks;

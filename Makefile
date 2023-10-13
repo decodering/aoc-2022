@@ -54,3 +54,6 @@ day13-test1:
 
 day13:
 	@python -um day-13.tasks;
+
+day16-sample:
+	@python -um day-16.tasks sample;
